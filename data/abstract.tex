@@ -1,0 +1,24 @@
+% !TeX root = ../thuthesis-example.tex
+
+% 中英文摘要和关键字
+
+\begin{abstract}
+在机器学习技术迅速发展的背景下，多摄像头行人位置估计因为其在智能城市、视频监控、自动驾驶和机器人等领域中广泛的应用需求而受到了越来越多的重视。随着科技的进步和社会的发展，多摄像头行人位置估计技术的应用需求也越来越大，例如，在汽车自动驾驶技术的实现中需要判断视线中人物的位置，在多个视频视角重叠监控的路口需要判断行人穿行马路时的位置。然而，目前的多摄像头行人位置估计技术仍然有很大进步空间，如在行人数量较多、多个行人互相遮挡或有车辆遮挡视角时，算法效果仍难以达到预期。如何在提高估计准确度的同时提升鲁棒性，这个问题具有相当的挑战性。近年来，深度学习方法在各行各业尤其是计算机视觉领域迅速发展，在多个领域例如行人跟踪与识别等的应用极大推动了多摄像头行人位置估计技术的成熟，行人位置估计算法有了新的突破口。因此，本文将传统方法与深度学习方法相结合，实现了从摄像头数据得到行人位置估计的过程，探索更具有鲁棒性的行人位置估计算法。
+
+本文提出了一种结合各摄像头视角信息对行人位置进行高斯概率分布建模，然后利用深度学习网络训练实现行人位置估计的算法。本文提出的算法首先利用即插即用的单目检测模型得到每个摄像头中每个行人的姿态节点，然后利用相机投影的几何关系，投影得到行人在实际路面上的位置。之后，根据摄像头视角，在行人所在位置建立二维高斯概率分布，作为行人位置的估计。而后利用高斯概率分布之间的KL散度作为距离进行层次聚类，从而融合每个摄像头对单个行人的位置估计。得到最佳参数后，将每一帧得到的高斯概率分布制作为热图，输入ResUnet++深度学习网络进行图像分割的训练，最终得到行人位置估计结果。实验结果表明，在WildTrack数据集上，本文算法提高了不同摄像头视角信息的利用率，增强了算法鲁棒性，同时，算法效果接近业界领先水平。
+
+  % 关键词用“英文逗号”分隔，输出时会自动处理为正确的分隔符
+  \thusetup{
+    keywords = {多视角行人检测, 深度学习算法, 概率分布建模},
+  }
+\end{abstract}
+
+\begin{abstract*}
+  With the rapid development of machine learning technology, multi-view pedestrian position estimation has attracted more and more attention because of its wide application needs in intelligent cities, video surveillance, autonomous driving, robots and other fields. With the progress of science and technology and the development of society, there is an increasing demand for multi-view pedestrian position estimation technology. For example, it is necessary to estimate the position of people in the sight of auto-driving vehicles, and it is necessary to estimate the position of pedestrians when crossing the road at the crossroads where multiple video perspectives overlap. However, there are still great prospects for development in the field of current multi-view pedestrian position estimation technology. For example, when there are a large number of pedestrians, several pedestrians would block each other, or vehicles would block the view. In these circumstances, it is hard for current algorithms produce a marked effect. How to improve the estimation accuracy and robustness at the same time is quite challenging. In recent years, the deep learning method has developed rapidly in all professions and trades, especially in the field of computer vision. The application in many fields, such as pedestrian tracking and recognition, has greatly promoted the development and maturity of multi-view pedestrian position estimation technology. These new advances motivated the pedestrian position estimation algorithm to make a new breakthrough. In this context, this thesis combines the traditional method with the deep learning method to reproduce the process of pedestrian position estimation from the camera data, and explore a more robust pedestrian position estimation algorithm.
+  In this thesis, we propose estimate the pedestrian location by combining the Gaussian probability distribution from different cameras and angles, and then performing training on a deep learning network. The algorithm proposed firstly uses an off-the-shelf monocular detection model to get the pose joints of each pedestrian in each camera, and then uses the geometric relationship of camera projection to get the location of the pedestrian on the ground plane. Then, depending on the location of each pedestrian and the angle of each view, a two-dimensional Gaussian probability distribution is established at the pedestrian location. Then the KL divergence between Gaussian probability distributions is used for hierarchical clustering, so as to fuse each camera information to estimate the only one position of a single pedestrian. After optimal parameters are obtained, the Gaussian probability distribution established in each frame is made into heatmaps, which will be input into the ResUNet++ for image segmentation training. Finally, the pedestrian position estimation results can be obtained. The experiments performed on the Wildtrack dataset. The results show that this algorithm makes better use of camera information from different views and enhances the robustness of prediction. Furthermore, the effect of the proposed algorithm is close to the state-of-the-art level.
+
+  % Use comma as separator when inputting
+  \thusetup{
+    keywords* = {Multi-view Pedestrian Detection, Deep Learning Algorithm, Probability Distribution Modeling},
+  }
+\end{abstract*}
