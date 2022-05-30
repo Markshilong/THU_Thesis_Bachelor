@@ -21,7 +21,7 @@
     \item Complete-Linkage：将两个不同聚类的数据点中距离最远的两个数据点间的距离作为这两个组合数据点的距离。这种方法的缺陷与Single-Linkage类似，也是极端值容易影响聚类效果。例如两个距离比较近的的聚类，可能由于其中的极端值距离较远而无法聚类；
     \item Average-Linkage：这种距离的计算方法是计算两个聚类的每个数据点与其他所有数据点的距离，将所有距离均值作为两个聚类间距离。这种方法计算量比较大，但结果比前两种方法更合理。
 \end{itemize}
-因此，本文层次聚类中选择了更合理的Complete-Linkage。同时，二维高斯概率分布之间的距离若直接用中心点之间的距离来衡量，则会损失其所估计的位置概率信息，于是本文采用相对熵(Relative Entropy)，又被称为KL散度(Kullback-Leibler Divergence)，来度量两个概率分布(Probability Distribution)间差异。在信息理论中，相对熵等于两个概率分布的信息熵(Shannon Entropy)的差值。设$P(x), Q(x)$是随机变量$X$上的两个概率分布，在连续随机变量的情形下，相对熵的定义为：
+因此，本文层次聚类中选择了更合理的Average-Linkage。同时，二维高斯概率分布之间的距离若直接用中心点之间的距离来衡量，则会损失其所估计的位置概率信息，于是本文采用相对熵(Relative Entropy)，又被称为KL散度(Kullback-Leibler Divergence)，来度量两个概率分布(Probability Distribution)间差异。在信息理论中，相对熵等于两个概率分布的信息熵(Shannon Entropy)的差值。设$P(x), Q(x)$是随机变量$X$上的两个概率分布，在连续随机变量的情形下，相对熵的定义为：
 \begin{equation}
   \text{KL}(P\|Q)=\int P(x)log{\frac{P(x)}{Q(x)}}dx
 \end{equation}
@@ -32,39 +32,15 @@
   &=\frac{1}{2}\left[log{\frac{|\Sigma_2|}{|\Sigma_1|}}-K+tr(\Sigma_2^{-1}\Sigma_1)+(\bm{\mu_1}-\bm{\mu_2})^\top\Sigma_2^{-1}(\bm{\mu_1}-\bm{\mu_2})\right]
   \end{aligned}
 \end{equation}
-其中，$N(x|\bm{\mu_1},\Sigma_1)$为$\bm{\mu}=\mu_1, \Sigma=\Sigma_1$的二维高斯概率分布，$N(x|\bm{\bm{\mu_2}},\Sigma_2)$为$\bm{\mu}=\bm{\mu_2}, \Sigma=\Sigma_2$的二维高斯概率分布。最后，得到层次聚类结果后，由于相机有重叠的视野，所以我们丢弃只有一个数据点的聚类，从而减少了错误聚类的数量，提升了聚类效果。最终得到的层次聚类结果如图~\ref{HC_a}所示，其中黄色三角形为行人实际地面位置，而橙色星形为层次聚类得到的行人地面位置估计。作为补充，图~\ref{HC_b}中也显示了作为层次聚类输入的人物位置二维高斯概率分布(以椭圆形表示)，其中来自同一摄像头的分布用同一种颜色表示，同一颜色、同一序号的二维高斯概率分布为同一聚类。
-\begin{figure}
-    \centering
-    \subcaptionbox{\label{HC_a}}
-      {\includegraphics[width=0.4\linewidth]{HC.pdf}}
-    \subcaptionbox{\label{HC_b}}
-      {\includegraphics[width=0.4\linewidth]{HC_gaussian.pdf}}
-    \caption{层次聚类结果}
-    \label{HC}
-\end{figure}
+其中，$N(x|\bm{\mu_1},\Sigma_1)$为$\bm{\mu}=\mu_1, \Sigma=\Sigma_1$的二维高斯概率分布，$N(x|\bm{\bm{\mu_2}},\Sigma_2)$为$\bm{\mu}=\bm{\mu_2}, \Sigma=\Sigma_2$的二维高斯概率分布。最后，由于相机有重叠的视野，利用KL散度作为不同数据点之间的距离进行层次聚类后，需要摒弃只有一个数据点的聚类，通过这种方法，减少了错误聚类的数量，提升了聚类效果。
 
 \section{深度学习数据准备}
 
-对二维高斯概率分布进行聚类融合之后，接下来需要生成适用于后续神经网络输入和输出的图片。对于输入，本文将前述得到的二维高斯概率分布投影到一张大小为$224\times672$的热图(Heatmap)中，便于神经网络处理。为了得到最优的热图，需要对前述生成二维高斯概率分布的超参数进行调整。调整的方法是，令层次聚类得到的聚类中心点与真实地面坐标的差异趋于最小值，在此过程中进行参数记录，则可得到最优的超参数如下表~\ref{parameter_table}所示。利用此最优超参数生成后续神经网络输入的热图，可以最大化神经网络方法的效果。
+对二维高斯概率分布进行聚类融合之后，接下来需要生成适用于后续神经网络输入和输出的图片。对于输入，本文将前述得到的二维高斯概率分布投影到一张大小为$224\times672$的热图(Heatmap)中，便于神经网络处理。为了得到最优的热图，需要对前述生成二维高斯概率分布的超参数进行调整。调整的方法是，令层次聚类得到的聚类中心点与真实地面坐标的差异趋于最小值，在此过程中进行参数记录，则可得到最优的超参数。
 
 接下来，使用上述参数得到二维高斯概率分布后，将其投影到热图中。而输入神经网络中的真值标签图，则可以使用真实地面坐标的占据图(Occupancy Map)\cite{fleuret2007multicamera}表示。最终所得热图如图~\ref{heatmap}所示，标签图如~\ref{occupancyMap}所示。
 
 最后，在输入神经网络前，还需要划分数据集。本文将上文中数据集扩充时通过提取的视频帧作为训练集，将官方提供的400帧图片集作为测试集。
-\begin{table}
-    \centering
-    \caption{反向优化得到的最优超参数}
-    \begin{tabular}{lll}
-        \toprule
-        参数 & 值  & 描述         \\
-        \midrule
-        $k_{c}$ & 700 & 二维高斯概率分布中$C=k_{c}\bm{v}^\top\bm{v}, C'=k_{c}\bm{v}'^\top\bm{v}'$中的$k_{c}$ \\
-        $k$   & 0.85 &  二维高斯概率分布中$\Sigma=kC + (1-k)C'$中的$k$   \\
-        $t_{g}$ & 19cm &  层次聚类中聚为一类的阈值距离  \\
-        $t_{ankle}$ & 0.35 &  单目探测器结果中保留概率超过$t_{ankle}$的脚踝节点 \\
-        \bottomrule
-    \end{tabular}
-    \label{parameter_table}
-\end{table}
 
 \begin{figure}
     \centering

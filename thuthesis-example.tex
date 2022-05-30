@@ -25,7 +25,7 @@
 
 % 学位论文指导小组、公开评阅人和答辩委员会名单
 % 本科生不需要
-\input{data/committee}
+% \input{data/committee}
 
 % 使用授权的说明
 \copyrightpage
@@ -59,6 +59,9 @@
 % 其他部分
 \backmatter
 
+\listoffigures           % 插图清单
+\listoftables            % 附表清单
+
 % 参考文献
 \bibliography{ref/refs}  % 参考文献使用 BibTeX 编译
 % \printbibliography       % 参考文献使用 BibLaTeX 编译
@@ -82,7 +85,7 @@
 
 \appendix
 % \input{data/appendix-survey}       % 本科生：外文资料的调研阅读报告 ++
-% \input{data/appendix-translation}  % 本科生：外文资料的书面翻译 ++
+\input{data/appendix-translation}  % 本科生：外文资料的书面翻译 ++
 % \input{data/appendix} ++
 
 
