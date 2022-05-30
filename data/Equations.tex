@@ -11,9 +11,9 @@
 具体地来说主要有以下差异：
 \begin{enumerate}
   \item 大写希腊字母默认为斜体，如
-    \begin{equation*}
+    \begin{equation}
       \Gamma \Delta \Theta \Lambda \Xi \Pi \Sigma \Upsilon \Phi \Psi \Omega.
-    \end{equation*}
+    \end{equation}
     注意有限增量符号 $\increment$ 固定使用正体，模板提供了 \cs{increment} 命令。
   \item 小于等于号和大于等于号使用倾斜的字形 $\le$、$\ge$。
   \item 积分号使用正体，比如 $\int$、$\oint$。
@@ -21,9 +21,9 @@
     偏微分符号 $\partial$ 使用正体。
   \item
     省略号 \cs{dots} 按照中文的习惯固定居中，比如
-    \begin{equation*}
+    \begin{equation}
       1, 2, \dots, n \quad 1 + 2 + \dots + n.
-    \end{equation*}
+    \end{equation}
   \item
     实部 $\Re$ 和虚部 $\Im$ 的字体使用罗马体。
 \end{enumerate}
@@ -32,11 +32,11 @@
 另外国标还有一些与 AMS 不同的符号使用习惯，需要用户在写作时进行处理：
 \begin{enumerate}
   \item 数学常数和特殊函数名用正体，如
-    \begin{equation*}
+    \begin{equation}
       \uppi = 3.14\dots; \quad
       \symup{i}^2 = -1; \quad
       \symup{e} = \lim_{n \to \infty} \left( 1 + \frac{1}{n} \right)^n.
-    \end{equation*}
+    \end{equation}
   \item 微分号使用正体，比如 $\dif y / \dif x$。
   \item 向量、矩阵和张量用粗斜体（\cs{symbf}），如 $\symbf{x}$、$\symbf{\Sigma}$、$\symbfsf{T}$。
   \item 自然对数用 $\ln x$ 不用 $\log x$。
@@ -60,7 +60,7 @@
 
 \section{数学公式}
 
-数学公式可以使用 \env{equation} 和 \env{equation*} 环境。
+数学公式可以使用 \env{equation} 和 \env{equation} 环境。
 注意数学公式的引用应前后带括号，通常使用 \cs{eqref} 命令，比如式\eqref{eq:example}。
 \begin{equation}
   \frac{1}{2 \uppi \symup{i}} \int_\gamma f = \sum_{k=1}^m n(\gamma; a_k) \mathscr{R}(f; a_k).
