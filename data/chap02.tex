@@ -6,7 +6,7 @@
 
 对于行人检测与高斯概率分布建模，首先需要选择合适的数据集，并对数据进行预处理。目前，比较适合多摄像头多目标位置估计的综合性能较好的数据集主要包括Duke MTMC(Multi-Target, Multi-Camera)数据集\cite{Ristani2016PerformanceMA}和上文提到的WildTrack数据集。其中，Duke MTMC数据集是2014年杜克大学校园拍摄的监控视频片段的数据集。这个数据集包含超过十四小时、来自八个摄像头的拍摄的约2000名学生步行上下学的同步监控视频。视频为1080p和60fps，超过200万帧，主要用于行人跟踪、行人重识别、轨迹预测、位置估计和人脸识别的研究。但由于此数据集在个人隐私方面的法律问题，Duke MTMC数据集的下载渠道被关闭。而WildTrack数据集则是一个记录了苏黎世联邦理工大学主楼外的学生的监控录像数据集。WildTrack使用七个具有重叠视野的高科技静态定位摄像头(三个GoPro Hero 4和四个GoPro Hero 3摄像头)获取，具有高精度的联合摄像机校准以及视图序列同步，并且摄像头视野有着较大部分的重叠。因此可以满足在多视角多目标位置估计问题中大规模多摄像头数据集深度学习训练的需要。
 
-本文采用WildTrack数据集。此数据集提供了时长为35分钟的分辨率为$1920\times1080$、帧率为60fps的来自七个摄像头的同步视频，以及分辨率为$1920\times1080$、帧率为2fps并消除畸变后的400张视频帧(如图所示)，并且提供了400张视频帧的行人位置标注，最后，还提供了每个摄像头的相机参数。此数据集所关注的区域为$1200cm\times3600cm$广场，而在标注时，将广场分割为$480\times1440$的网格，每个网格边长为2.5cm，从而得到691200个网格点。对每个网格点从上到下从左到右进行编号，可以得到网格编号，称为Position ID。若在此网格上建立直角坐标系，坐标以米为单位，原点在$(-3.0, -9.0)$处，从而，根据Position ID可以得到标注坐标为
+本文采用WildTrack数据集。此数据集提供了时长为35分钟的分辨率为$1920\times1080$、帧率为60fps的来自七个摄像头的同步视频，以及分辨率为$1920\times1080$、帧率为2fps并消除畸变后的400张视频帧(如图~\ref{WildTrack_Cam}所示)，并且提供了400张视频帧的行人位置标注，最后，还提供了每个摄像头的相机参数。此数据集所关注的区域为$1200cm\times3600cm$广场，而在标注时，将广场分割为$480\times1440$的网格，每个网格边长为2.5cm，从而得到691200个网格点。对每个网格点从上到下从左到右进行编号，可以得到网格编号，称为Position ID。若在此网格上建立直角坐标系，坐标以米为单位，原点在$(-3.0, -9.0)$处，从而，根据Position ID可以得到标注坐标为
 \begin{equation}
   \left\{
     \begin{aligned}
@@ -17,38 +17,38 @@
 \end{equation}
 
 
-% \begin{figure}
-%     \centering
-%     \subcaptionbox{\label{cam1}}
-%       {\includegraphics[width=0.3\linewidth]{cam1.png}}
-%     \subcaptionbox{\label{cam2}}
-%       {\includegraphics[width=0.3\linewidth]{cam2.png}}
-%     \subcaptionbox{\label{cam3}}
-%       {\includegraphics[width=0.3\linewidth]{cam3.png}}
-%     \quad
-%     \subcaptionbox{\label{cam4}}
-%       {\includegraphics[width=0.3\linewidth]{cam4.png}}
-%     \subcaptionbox{\label{cam5}}
-%       {\includegraphics[width=0.3\linewidth]{cam5.png}}
-%     \subcaptionbox{\label{cam6}}
-%       {\includegraphics[width=0.3\linewidth]{cam6.png}}
-%     \subcaptionbox{\label{cam7}}
-%       {\includegraphics[width=0.3\linewidth]{cam7.png}}
-%     \caption{WildTrack数据集中来自七个摄像头的图片}
-%     \label{WildTrack_Cam}
-% \end{figure}
+\begin{figure}
+    \centering
+    \subcaptionbox{\label{cam1}}
+      {\includegraphics[width=0.3\linewidth]{cam1.png}}
+    \subcaptionbox{\label{cam2}}
+      {\includegraphics[width=0.3\linewidth]{cam2.png}}
+    \subcaptionbox{\label{cam3}}
+      {\includegraphics[width=0.3\linewidth]{cam3.png}}
+    \quad
+    \subcaptionbox{\label{cam4}}
+      {\includegraphics[width=0.3\linewidth]{cam4.png}}
+    \subcaptionbox{\label{cam5}}
+      {\includegraphics[width=0.3\linewidth]{cam5.png}}
+    \subcaptionbox{\label{cam6}}
+      {\includegraphics[width=0.3\linewidth]{cam6.png}}
+    \subcaptionbox{\label{cam7}}
+      {\includegraphics[width=0.3\linewidth]{cam7.png}}
+    \caption{WildTrack数据集中来自七个摄像头的图片}
+    \label{WildTrack_Cam}
+\end{figure}
 
-由于后续神经网络训练的需要，而官方提供的400张图片和标注总体数量太少，难以达到预期训练效果，因此需要使用WildTrack数据集提供的视频进行数据集的扩充。由于带标注的400张图片帧率为2fps，而视频序列的帧率则为60fps，因此，可以先从视频序列中找到与官方提供的图片集一致的帧，以此帧为起点，每30帧就会再次遇到官方图片集中的下一张图片。但是，由于从视频序列中提取的帧在WildTrack数据集中并不提供真值标注，因此可以通过对提供标注的400张图片集的标注进行插值，从而推断得到每两个图片之间提取到的视频帧的真值标注。此外，由于提供的图片集已经被去畸变处理过，而提取到的视频帧并未去畸变处理。故需要先对视频帧进行与图片集相同的去畸变处理，如图所示。
+由于后续神经网络训练的需要，而官方提供的400张图片和标注总体数量太少，难以达到预期训练效果，因此需要使用WildTrack数据集提供的视频进行数据集的扩充。由于带标注的400张图片帧率为2fps，而视频序列的帧率则为60fps，因此，可以先从视频序列中找到与官方提供的图片集一致的帧，以此帧为起点，每30帧就会再次遇到官方图片集中的下一张图片。但是，由于从视频序列中提取的帧在WildTrack数据集中并不提供真值标注，因此可以通过对提供标注的400张图片集的标注进行插值，从而推断得到每两个图片之间提取到的视频帧的真值标注。此外，由于提供的图片集已经被去畸变处理过，而提取到的视频帧并未去畸变处理。故需要先对视频帧进行与图片集相同的去畸变处理，如图~\ref{undistortion}所示。
 
-% \begin{figure}
-%   \centering
-%   \subcaptionbox{\label{before}}
-%     {\includegraphics[width=0.4\linewidth]{before_undistort.jpg}}
-%   \subcaptionbox{\label{after}}
-%     {\includegraphics[width=0.4\linewidth]{after_undistort.jpg}}
-%   \caption{去畸变处理示例}
-%   \label{undistortion}
-% \end{figure}
+\begin{figure}
+  \centering
+  \subcaptionbox{\label{before}}
+    {\includegraphics[width=0.4\linewidth]{before_undistort.jpg}}
+  \subcaptionbox{\label{after}}
+    {\includegraphics[width=0.4\linewidth]{after_undistort.jpg}}
+  \caption{去畸变处理示例}
+  \label{undistortion}
+\end{figure}
 
 针孔摄像机会引起图像的严重畸变，主要有径向畸变和切向畸变。径向畸变使直线看起来是曲线。离图像中心越远，图像的径向畸变越大。径向畸变可以表示为：
 \begin{equation}

@@ -33,9 +33,9 @@
 
 我们利用了表~\ref{parameter_table}中的超参数进行层次聚类的数据融合，之后可以初步得到行人位置估计结果，这些实验结果与深度学习方法的比较如表~\ref{experiments}所示。
 
-在深度学习方法中，主要在WildTrack数据集上进行实验。其中，作为训练集的是从WildTrack数据集提供的七个摄像头视频提取到的视频帧，每个摄像头共有11558张图片，其中真值由官方提供的400张图片真值插值得到；作为测试集的是WildTrack数据集提供的每个摄像头400张的去畸变图，提供了真值标注。实现的ResUNet和ResUNet++网络均基于PyTorch，部署在NVIDIA RTX 3090 GPU进行训练，系统版本为Ubuntu 18.04，提供CUDA 11.3支持。在训练的过程中，输入热图和输出预测图的尺寸均为$224\times 672$，输入网络时采用的Batch Size为4，使用Adam优化器进行调优。同时，为了避免网络难以收敛到最优状态，初始学习率设置为1e-3，每20个训练周期(epoch)学习率衰减为原来的0.1倍，一共训练120个周期。
+在深度学习方法中，主要在WildTrack数据集上进行实验。其中，作为训练集的是从WildTrack数据集提供的七个摄像头视频提取到的视频帧，每个摄像头共有11558张图片，其中真值由官方提供的400张图片真值插值得到；作为测试集的是WildTrack数据集提供的每个摄像头400张的去畸变图，提供了真值标注。实现的ResUNet和ResUNet++网络均基于PyTorch，部署在NVIDIA RTX 3090 GPU进行训练，系统版本为Ubuntu 18.04，提供CUDA 11.3支持。在训练的过程中，输入热图和输出预测图的尺寸均为$224\times 672$，输入网络时采用的Batch Size为4，使用Adam优化器进行调优。同时，为了避免网络难以收敛到最优状态，初始学习率设置为1e-3，每20个训练周期(epoch)学习率衰减为原来的0.1倍，一共训练100个周期。
 
-最后，将深度学习方法中ResUNet和ResUNet++网络的实验结果与目前领域内几个深度学习方法的比较如下表~\ref{experiments}所示。
+将深度学习方法中ResUNet和ResUNet++网络的实验结果与目前领域内几个深度学习方法的比较如下表~\ref{experiments}所示。
 \begin{table}
     \centering
     \caption{层次聚类方法、ResUNet和ResUNet++与其他方法实验效果比较}
@@ -44,17 +44,67 @@
         方法 & 精确率  & 召回率 & F分数                       \\
         \midrule
         Deep-Occlusion\cite{baque2017deep} & 95\% & 80\% & 86\%                  \\
-        Generalized Mutiview Detection\cite{2021Generalizable} & 93\% & 94\% & 93\%  \\
-        Hierarchical Clustering & 62\% & 87\% & 72\%         \\
-        ResUNet & 70\% & 92\% & 79\%                         \\
-        ResUNet++ & 82\% & 98\% & 89\%                      \\
+        Generalized Mutiview Detection\cite{vora2021bringing} & 94\% & 93\% & 93\%  \\
+        Hierarchical Clustering & 87\% & 62\% & 72\%         \\
+        ResUNet & 92\% & 70\% & 79\%                         \\
+        ResUNet++ & 95\% & 85\% & 90\%                      \\
         \bottomrule
     \end{tabular}
     \label{experiments}
 \end{table}
 
-由表~\ref{experiments}可以看出，ResUNet++网络结构效果比ResUNet效果好很多，而没有使用神经网络的层次聚类融合方法效果最差。同时，也可以发现，ResUNet++在多摄像头多目标行人位置估计领域，在未使用行人重识别和时序信息的情况下，达到了接近目前业界领先算法的效果。
+由表~\ref{experiments}可以看出，ResUNet++网络结构效果比ResUNet效果好很多，而没有使用神经网络的层次聚类融合方法效果最差。同时，也可以发现，ResUNet++在多摄像头多目标行人位置估计领域，在未使用行人重识别和时序信息的情况下，达到了接近目前业界领先算法的效果。然而，我们可以发现几乎所有的结果中精确率都比召回率更高，尤其是ResUNet得到的结果。这是因为网络对输入的热图进行特征提取时，那些遮挡较少、有多个摄像头同时拍摄的行人会在热图中生成明显的概率分布聚集，从而提高了预测点的精确率。然而，在人员密集的区域，对行人的检测和估计难度迅速增大，从而导致了很多遮挡行人难以被检测到，因此导致预测点比实际点数量更少，从而降低了召回率。在本文提出的多摄像头行人位置估计算法中，关键的困难不是预测得到的位置点与实际点距离偏离过大，而是对于遮挡严重的行人，即使检测到其存在，也很难在多个摄像头中同时生成其二维高斯概率分布，导致生成的热图中遮挡严重的行人的特征比较混乱，因此容易被网络忽略和误判。因此，预测点将会比实际点少，从而导致召回率降低。
+
+\begin{figure}
+    \centering
+      \subcaptionbox{输入热图\label{300heatmap}}
+      {\includegraphics[width=0.2\linewidth]{000300_inputs.png}}
+      \subcaptionbox{真值标签\label{300label}}
+      {\includegraphics[width=0.2\linewidth]{000300_label.png}}
+      \subcaptionbox{ResUNet++\label{300RPP}}
+      {\includegraphics[width=0.2\linewidth]{000300_RPP.png}}
+      \subcaptionbox{ResUNet\label{300R}}
+      {\includegraphics[width=0.2\linewidth]{000300_R.png}}
+    \caption{预测结果示例1}
+    \label{success}
+\end{figure}
+
+接下来，结合具体例子对估计结果进行分析。图~\ref{success}展示了一个位置估计相对比较成功的结果，在这一帧中，ResUNet++得到的结果精确度达到了100\%，召回率为94\%，F分数为97\%，而ResUNet得到的结果为精确度100\%，召回率为50\%，F分数为67\%。其中，预测比较成功的原因主要是当前图片内人物数量不多，互相遮挡的情况比较少，因而在第一步的AlphaPose姿态节点检测中就能得到比较准确的结果，得到的二维高斯概率分布图和生成的热图比较简单，同时，由于网络结构比较深入，对于这种相对简单的场景能够比较容易抓取其概率分布的特征，因此在ResUNet和ResUNet++中都取得了相对不错的效果。
+
+
+然而，在图~\ref{failure1}中，可以看出预测的结果并不十分理想。在这一帧中，ResUNet++得到的精确度为92\%，召回率为58\%，F分数为71\%，而ResUNet为精确度为77\%，召回率为33\%，F分数为46\%，可见这一帧的预测过程中出现了很大障碍。从精确度和召回率相差很大的现象可以得出，在这一帧中最大的问题是有很多行人没有判断出来。出现这种现象是因为所采用的AlphaPose单目检测器，并不能直接输入高清图片，而是只能输入尺寸非常小的$256\times 192$的图片，在压缩尺寸的过程中自然丢弃了很多图像的内容信息。从图~\ref{failure1}中可以看到，ResUNet与ResUNet++都在左侧边缘区域以及左上角距离摄像头比较远的区域出现了很多未探测到行人的状况，印证了上述AlphaPose输入尺寸过小，导致较远处行人分辨率过低，难以辨认姿态节点，即使得到节点，其准确性也很差。针对此问题，未来可以将姿态估计部分改为输入高清图片，探测到行人后截取其检测框，然后将检测框输入网络判断姿态，便可完全利用摄像头捕捉到的行人外表信息，而不是现在将整幅图直接压缩尺寸后输入，造成信息损失。此外，在图中上侧的行人密集处，也出现了预测不全，这是因为此帧中行人密集处在不同摄像机视角下都有较多的遮挡，在这种复杂遮挡的背景下，不仅仅AlphaPose得到的姿态不准确，而且生成的二维高斯概率分布图也呈现出一种混乱的状况。针对这一问题，需要改进二维高斯概率分布建模过程。未来可以给每个二维高斯概率分布加入与摄像头距离相关的权重，或者让与摄像头的距离成为调节二维高斯概率分布大小和形状的重要因素，这样，可以将摄像头远近不同产生不同置信概率的信息加入到位置概率建模和热图生成过程中，如此可减少远处行人的概率分布混乱问题，同时增强近处行人的估计准确度。最后，左侧行人位置的估计不全还可能是因为左侧区域有一些行人在区域的边缘处，于是数据集的标注会呈现一定的不确定性，此外，此区域还有一些坐在台阶上的行人，这些行人在AlphaPose的探测中常常会被错误探测，从而造成了最终预测结果的失误。
+\begin{figure}
+    \centering
+      \subcaptionbox{输入热图\label{045heatmap}}
+      {\includegraphics[width=0.2\linewidth]{000045_inputs.png}}
+      \subcaptionbox{真值标签\label{045label}}
+      {\includegraphics[width=0.2\linewidth]{000045_label.png}}
+      \subcaptionbox{ResUNet++\label{045RPP}}
+      {\includegraphics[width=0.2\linewidth]{000045_RPP.png}}
+      \subcaptionbox{ResUNet\label{045R}}
+      {\includegraphics[width=0.2\linewidth]{000045_R.png}}
+    \caption{预测结果示例2}
+    \label{failure1}
+\end{figure}
+
+\begin{figure}
+    \centering
+      \subcaptionbox{输入热图\label{015heatmap}}
+      {\includegraphics[width=0.2\linewidth]{000015_inputs.png}}
+      \subcaptionbox{真值标签\label{015label}}
+      {\includegraphics[width=0.2\linewidth]{000015_label.png}}
+      \subcaptionbox{ResUNet++\label{015RPP}}
+      {\includegraphics[width=0.2\linewidth]{000015_RPP.png}}
+      \subcaptionbox{ResUNet\label{015R}}
+      {\includegraphics[width=0.2\linewidth]{000015_R.png}}
+    \caption{预测结果示例3}
+    \label{failure2}
+\end{figure}
+
+此外，在图~\ref{failure2}中，效果也不太理想，同时ResUNet++和ResUNet所得到的结果有较大的差异。在这一帧中，ResUNet++得到的精确度为97\%，召回率为75\%，F分数为84\%，而ResUNet为精确度为93\%，召回率为39\%，F分数为55\%。可见ResUNet的结果召回率相当低。在图中对比也可以发现，ResUNet++在人群密集区域有较多的未命中点，而ResUNet预测结果中有很多真实位置没有被估计到。ResUNet++在人群密集区域的缺陷上文已经举例分析，因此此处分析ResUNet与ResUNet++预测结果的差异。对比可见，在输入热图大块特征比较明显，即有多个摄像头同时拍摄到同一个行人的情况下，ResUNet++和ResUNet都呈现了不错的效果。但是在高斯概率分布相对混乱的区域，或者说，局部特征和纹理比较复杂的区域，ResUNet++取得了比ResUNet好得多的效果。这是因为ResUNet++加入的挤压和激励单元提高了网络对局部特征的敏感性，抑制了不必要的一些混乱的特征，同时空洞空间金字塔池化和注意力机制使得网络可以控制视野，专注于重要的局部特征，显著提升了特征的质量。因此ResUNet++相比ResUNet在概率分布比较混乱的部分能够取得更准确的结果。
+
+最后，在层次聚类的反向调优过程中，可以通过设计更好的调优方法找到最佳的参数，从而得到更准确合理的热图，提高网络输出效果。此外，在将网络输出的预测图转变为实际位置时，也会产生一些误差，这些误差会对最终结果造成一定影响。
 
 \section{本章小结}
 
-本章中主要介绍了实验的评价指标、实验设置细节和具体实验结果的分析。实验的评价指标主要使用了精确率、召回率和F分数三个指标来衡量算法位置估计的效果，实验设置上，对数据集进行扩充以增加训练量，同时利用学习率衰减的训练策略，提升了训练效果。在实验结果方面，仅仅使用层次聚类来得到行人的位置估计的算法效果并不好，而在层次聚类的基础上利用ResUNet和ResUNet++的深度学习网络可以达到较好的效果。此外，所实现的ResUNet++在ResUNet基础上改进而来，达到了接近目前最优算法的性能。
+本章中主要介绍了实验的评价指标、实验设置细节和具体实验结果的分析。实验的评价指标主要使用了精确率、召回率和F分数三个指标来衡量算法位置估计的效果，实验设置上，对数据集进行扩充以增加训练量，同时利用学习率衰减的训练策略，提升了训练效果。在实验结果方面，仅仅使用层次聚类来得到行人的位置估计的算法效果并不好，而在层次聚类的基础上利用ResUNet和ResUNet++的深度学习网络可以达到较好的效果。最后对实验结果进行分析，同时提出了一些未来改进的方向。所实现的ResUNet++在ResUNet基础上改进而来，达到了接近目前最优算法的性能。
